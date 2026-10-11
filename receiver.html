@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knights Flights - تتبع الشحنة</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 20px;
+            margin: 0;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--accent);
+            text-align: center;
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--bg-input);
+            border-radius: 8px;
+            border-right: 4px solid var(--accent);
+            display: none;
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            background: #eab308;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📦 تتبع الشحنة</h1>
+    <div class="form-group">
+        <label>أدخل كود الرحلة / الشحنة:</label>
+        <input type="text" id="trackInput" placeholder="مثال: KF-123456">
+    </div>
+    <button onclick="trackFlight()">استعلام 🔍</button>
+
+    <div id="resultBox" class="result-box"></div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+    function trackFlight() {
+        const flightId = document.getElementById('trackInput').value.trim();
+        const resultBox = document.getElementById('resultBox');
+
+        if (!flightId) {
+            alert('برجاء كتابة رقم الشحنة أولاً!');
+            return;
+        }
+
+        database.ref('flights/' + flightId).once('value').then((snapshot) => {
+            const data = snapshot.val();
+            resultBox.style.display = 'block';
+
+            if (data) {
+                resultBox.innerHTML = `
+                    <h3 style="color:var(--accent); text-align:center; margin-top:0;">تفاصيل الشحنة</h3>
+                    <p><b>رقم الشحنة:</b> ${data.flightId}</p>
+                    <p><b>اسم المستلم:</b> ${data.receiverName}</p>
+                    <p><b>السائق المسؤول:</b> ${data.driverName}</p>
+                    <p><b>المبلغ المطلوب:</b> <span style="color:#10b981; font-weight:bold;">${data.price} ج.م</span></p>
+                    <p><b>موعد التسليم:</b> ${data.deliveryDate}</p>
+                    <p><b>حالة الشحنة:</b> <span class="status-badge">${data.status}</span></p>
+                    <p><b>ملاحظات:</b> ${data.notes}</p>
+                `;
+            } else {
+                resultBox.innerHTML = '<p style="color:var(--danger); text-align:center; margin:0;">عفواً، لم يتم العثور على شحنة بهذا الرقم!</p>';
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knights Flights - لوحة المالك (Owner)</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #a855f7;
+            --accent-hover: #9333ea;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 20px;
+            margin: 0;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1, h2 {
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        .company-card {
+            background: var(--bg-input);
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            border-right: 4px solid var(--accent);
+            position: relative;
+        }
+
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            width: auto;
+            padding: 6px 14px;
+            font-size: 12px;
+            position: absolute;
+            left: 15px;
+            top: 15px;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>👑 لوحة التحكم العليا (Super Admin / Owner)</h1>
+
+    <!-- قسم إضافة شركة جديدة -->
+    <div class="panel">
+        <h2>🏢 إضافة شركة/أدمن جديد للنظام</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>اسم الشركة:</label>
+                <input type="text" id="companyName" placeholder="مثال: شركة الفرسان">
+            </div>
+            <div class="form-group">
+                <label>اسم المسؤول (Admin):</label>
+                <input type="text" id="adminName" placeholder="الاسم الكامل للمسؤول">
+            </div>
+            <div class="form-group">
+                <label>اسم المستخدم للشركة (Username):</label>
+                <input type="text" id="adminUsername" placeholder="company_admin">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور (Password):</label>
+                <input type="password" id="adminPassword" placeholder="******">
+            </div>
+        </div>
+        <button onclick="addCompany()">إنشاء حساب الشركة ➕</button>
+    </div>
+
+    <!-- قائمة الشركات المسجلة -->
+    <div class="panel">
+        <h2>📊 الشركات والحسابات المسجلة</h2>
+        <div id="companiesList">جاري تحميل حسابات الشركات...</div>
+    </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+    // 1. إضافة شركة/أدمن جديد
+    function addCompany() {
+        const companyName = document.getElementById('companyName').value.trim();
+        const adminName = document.getElementById('adminName').value.trim();
+        const username = document.getElementById('adminUsername').value.trim();
+        const password = document.getElementById('adminPassword').value.trim();
+
+        if (!companyName || !adminName || !username || !password) {
+            alert('برجاء استكمال كافة بيانات الشركة!');
+            return;
+        }
+
+        const companyId = 'CMP-' + Math.floor(1000 + Math.random() * 9000);
+
+        database.ref('companies/' + companyId).set({
+            companyId,
+            companyName,
+            adminName,
+            username,
+            password,
+            createdAt: new Date().toLocaleDateString('ar-EG')
+        }).then(() => {
+            alert('تم إضافة الشركة بنجاح!');
+            document.getElementById('companyName').value = '';
+            document.getElementById('adminName').value = '';
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+        });
+    }
+
+    // 2. عرض الشركات المسجلة لحظياً
+    database.ref('companies').on('value', (snapshot) => {
+        const container = document.getElementById('companiesList');
+        container.innerHTML = '';
+        const data = snapshot.val();
+
+        if (!data) {
+            container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">لا توجد شركات مسجلة حتى الآن.</p>';
+            return;
+        }
+
+        for (let id in data) {
+            let c = data[id];
+            container.innerHTML += `
+                <div class="company-card">
+                    <button class="delete-btn" onclick="deleteCompany('${c.companyId}')">حذف الشركة</button>
+                    <h3 style="margin-top:0; color:var(--accent);">${c.companyName}</h3>
+                    <p><b>المسؤول:</b> ${c.adminName}</p>
+                    <p><b>اسم المستخدم:</b> <span style="color:#10b981;">${c.username}</span> | <b>كلمة المرور:</b> ${c.password}</p>
+                    <p><b>تاريخ التسجيل:</b> ${c.createdAt}</p>
+                </div>
+            `;
+        }
+    });
+
+    // 3. حذف شركة
+    function deleteCompany(companyId) {
+        if (confirm('هل أنت متأكد من حذف هذه الشركة وحساب الأدمن الخاص بها؟')) {
+            database.ref('companies/' + companyId).remove();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knights Flights - بوابة السائق</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 20px;
+            margin: 0;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1, h2 {
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
+
+        .flight-card {
+            background: var(--bg-input);
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            border-right: 4px solid var(--success);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #eab308;
+            color: #000;
+        }
+
+        .btn-action {
+            margin-top: 8px;
+            background: var(--accent);
+            color: #000;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .btn-status {
+            background: var(--success);
+            color: white;
+            margin-top: 8px;
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚛 بوابة السائقين</h1>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginPanel" class="panel">
+        <h2>تسجيل دخول السائق</h2>
+        <div class="form-group">
+            <label>اسم المستخدم (Username):</label>
+            <input type="text" id="username" placeholder="أدخل اسم المستخدم">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور (Password):</label>
+            <input type="password" id="password" placeholder="أدخل كلمة المرور">
+        </div>
+        <button onclick="driverLogin()">دخول 🚀</button>
+    </div>
+
+    <!-- لوحة عرض رحلات السائق -->
+    <div id="dashboardPanel" class="panel" style="display: none;">
+        <h2 id="welcomeDriver">أهلاً بك</h2>
+        <p style="text-align: center; color: var(--text-muted);">الشحنات المخصصة لك:</p>
+        <div id="driverFlightsList">جاري تحميل الشحنات...</div>
+        <button class="logout-btn" onclick="driverLogout()">تسجيل الخروج 🚪</button>
+    </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+    let currentDriverName = localStorage.getItem('currentDriverName');
+
+    if (currentDriverName) {
+        showDashboard(currentDriverName);
+    }
+
+    function driverLogin() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+            alert('برجاء إدخال اسم المستخدم وكلمة المرور!');
+            return;
+        }
+
+        database.ref('drivers').once('value', (snapshot) => {
+            const drivers = snapshot.val();
+            let found = false;
+
+            if (drivers) {
+                for (let id in drivers) {
+                    let d = drivers[id];
+                    if (d.username === username && d.password === password) {
+                        found = true;
+                        currentDriverName = d.name;
+                        localStorage.setItem('currentDriverName', d.name);
+                        showDashboard(d.name);
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
+                alert('بيانات الدخول غير صحيحة!');
+            }
+        });
+    }
+
+    function showDashboard(driverName) {
+        document.getElementById('loginPanel').style.display = 'none';
+        document.getElementById('dashboardPanel').style.display = 'block';
+        document.getElementById('welcomeDriver').innerText = `أهلاً بك، الكابتن / ${driverName}`;
+        loadDriverFlights(driverName);
+    }
+
+    function loadDriverFlights(driverName) {
+        database.ref('flights').on('value', (snapshot) => {
+            const listContainer = document.getElementById('driverFlightsList');
+            listContainer.innerHTML = '';
+            const data = snapshot.val();
+
+            if (!data) {
+                listContainer.innerHTML = '<p style="text-align:center; color:var(--text-muted);">لا توجد رحلات مسجلة حالياً.</p>';
+                return;
+            }
+
+            let hasFlights = false;
+            for (let id in data) {
+                let f = data[id];
+                if (f.driverName === driverName) {
+                    hasFlights = true;
+                    listContainer.innerHTML += `
+                        <div class="flight-card">
+                            <h3 style="margin-top:0; color:var(--accent);">رقم الشحنة: ${f.flightId}</h3>
+                            <p><b>المستلم:</b> ${f.receiverName}</p>
+                            <p><b>المبلغ المطلوب:</b> <span style="color:#10b981;">${f.price} ج.م</span></p>
+                            <p><b>موعد التسليم:</b> ${f.deliveryDate}</p>
+                            <p><b>الحالة الحالية:</b> <span class="status-badge">${f.status}</span></p>
+                            <p><b>ملاحظات:</b> ${f.notes}</p>
+                            <a href="${f.mapUrl}" target="_blank" class="btn-action">🗺️ فتح الموقع على خرائط جوجل</a>
+                            <button class="btn-status" onclick="updateStatus('${f.flightId}', 'خرجت للتوصيل 🚚')">تحديث: خرجت للتوصيل 🚚</button>
+                            <button class="btn-status" style="background:#0284c7;" onclick="updateStatus('${f.flightId}', 'تم التسليم بنجاح ✅')">تحديث: تم التسليم ✅</button>
+                        </div>
+                    `;
+                }
+            }
+
+            if (!hasFlights) {
+                listContainer.innerHTML = '<p style="text-align:center; color:var(--text-muted);">لا توجد شحنات مخصصة لك حتى الآن.</p>';
+            }
+        });
+    }
+
+    function updateStatus(flightId, newStatus) {
+        database.ref('flights/' + flightId).update({
+            status: newStatus
+        }).then(() => {
+            alert('تم تحديث حالة الشحنة بنجاح!');
+        });
+    }
+
+    function driverLogout() {
+        localStorage.removeItem('currentDriverName');
+        location.reload();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knights Flights - لوحة التحكم الاحترافية</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 20px;
+            margin: 0;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1, h2 {
+            color: var(--accent);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
+
+        .flight-card {
+            background: var(--bg-input);
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            border-right: 4px solid var(--accent);
+            position: relative;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #eab308;
+            color: #000;
+        }
+
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            width: auto;
+            padding: 6px 14px;
+            font-size: 12px;
+            position: absolute;
+            left: 15px;
+            top: 15px;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 إدارة نظام Knights Flights</h1>
+
+    <!-- قسم إضافة سائق -->
+    <div class="panel">
+        <h2>➕ إضافة سائق جديد للنظام</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>اسم السائق:</label>
+                <input type="text" id="driverName" placeholder="الاسم الكامل">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف:</label>
+                <input type="text" id="driverPhone" placeholder="010xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>اسم المستخدم (Username):</label>
+                <input type="text" id="driverUsername" placeholder="driver_id">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور (Password):</label>
+                <input type="password" id="driverPassword" placeholder="******">
+            </div>
+        </div>
+        <button onclick="addDriver()">حفظ السائق الجديد</button>
+    </div>
+
+    <!-- قسم إنشاء أوردر / رحلة -->
+    <div class="panel">
+        <h2>📦 إنشاء شحنة / أوردر جديد</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>اختر السائق المسؤول:</label>
+                <select id="selectedDriver">
+                    <option value="">-- تحميل السائقين --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>اسم المستلم / العميل:</label>
+                <input type="text" id="receiverName" placeholder="اسم العميل">
+            </div>
+            <div class="form-group">
+                <label>سعر الشحنة (المطلوب تحصيله):</label>
+                <input type="number" id="orderPrice" placeholder="القيمة بالجنيه">
+            </div>
+            <div class="form-group">
+                <label>تاريخ وموعد التسليم المستهدف:</label>
+                <input type="date" id="deliveryDate">
+            </div>
+            <div class="form-group full">
+                <label>رابط موقع جوجل ماب (Google Maps URL):</label>
+                <input type="text" id="mapUrl" placeholder="https://maps.google.com/...">
+            </div>
+            <div class="form-group full">
+                <label>ملاحظات إضافية:</label>
+                <textarea id="orderNotes" rows="2" placeholder="أي تعليمات خاصة بالسائق..."></textarea>
+            </div>
+        </div>
+        <button onclick="addFlight()">توليد رقم الشحنة وإنشاء الطلب ➕</button>
+    </div>
+
+    <!-- قائمة الشحنات -->
+    <div class="panel">
+        <h2>📋 جدول الشحنات النشطة</h2>
+        <div id="flightsList">جاري تحميل الشحنات...</div>
+    </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+    // 1. تحميل السائقين في الـ Dropdown فور فتح الصفحة
+    database.ref('drivers').on('value', (snapshot) => {
+        const select = document.getElementById('selectedDriver');
+        select.innerHTML = '<option value="">-- اختر سائقاً من القائمة --</option>';
+        const data = snapshot.val();
+        if (data) {
+            for (let id in data) {
+                select.innerHTML += `<option value="${data[id].name}">${data[id].name} (${data[id].phone})</option>`;
+            }
+        }
+    });
+
+    // 2. دالة إضافة سائق جديد
+    function addDriver() {
+        const name = document.getElementById('driverName').value.trim();
+        const phone = document.getElementById('driverPhone').value.trim();
+        const username = document.getElementById('driverUsername').value.trim();
+        const password = document.getElementById('driverPassword').value.trim();
+
+        if (!name || !phone || !username || !password) {
+            alert('برجاء استكمال كافة بيانات السائق!');
+            return;
+        }
+
+        const driverId = 'DRV-' + Math.floor(1000 + Math.random() * 9000);
+        database.ref('drivers/' + driverId).set({
+            driverId, name, phone, username, password
+        }).then(() => {
+            alert('تم إضافة السائق بنجاح!');
+            document.getElementById('driverName').value = '';
+            document.getElementById('driverPhone').value = '';
+            document.getElementById('driverUsername').value = '';
+            document.getElementById('driverPassword').value = '';
+        });
+    }
+
+    // 3. دالة إضافة رحلة/أوردر مع رقم شحنة تلقائي فريد
+    function addFlight() {
+        const driverName = document.getElementById('selectedDriver').value;
+        const receiverName = document.getElementById('receiverName').value.trim();
+        const price = document.getElementById('orderPrice').value.trim();
+        const deliveryDate = document.getElementById('deliveryDate').value;
+        const mapUrl = document.getElementById('mapUrl').value.trim();
+        const notes = document.getElementById('orderNotes').value.trim();
+
+        if (!driverName || !receiverName || !price || !deliveryDate || !mapUrl) {
+            alert('برجاء ملء الحقول الأساسية!');
+            return;
+        }
+
+        // توليد رقم شحنة فريد تلقائي مستحيل يتكرر
+        const flightId = 'KF-' + Math.floor(100000 + Math.random() * 900000);
+
+        database.ref('flights/' + flightId).set({
+            flightId,
+            driverName,
+            receiverName,
+            price,
+            deliveryDate,
+            mapUrl,
+            notes: notes || 'لا توجد ملاحظات',
+            status: 'قيد الانتظار ⏳',
+            createdAt: new Date().toLocaleString('ar-EG')
+        }).then(() => {
+            alert('تم إنشاء الأوردر بنجاح! برقم شحنة: ' + flightId);
+            document.getElementById('receiverName').value = '';
+            document.getElementById('orderPrice').value = '';
+            document.getElementById('deliveryDate').value = '';
+            document.getElementById('mapUrl').value = '';
+            document.getElementById('orderNotes').value = '';
+        });
+    }
+
+    // 4. عرض وجدولة الرحلات مرتبة وتحديثها لحظياً
+    database.ref('flights').on('value', (snapshot) => {
+        const listContainer = document.getElementById('flightsList');
+        listContainer.innerHTML = '';
+        const data = snapshot.val();
+
+        if (!data) {
+            listContainer.innerHTML = '<p style="text-align:center; color:var(--text-muted);">لا توجد شحنات مسجلة حالياً.</p>';
+            return;
+        }
+
+        // تحويل البيانات لمصفوفة لترتيبها حسب الموعد الأقرب للأبعد
+        let flightsArray = [];
+        for (let id in data) {
+            flightsArray.push(data[id]);
+        }
+        flightsArray.sort((a, b) => new Date(a.deliveryDate) - new Date(b.deliveryDate));
+
+        flightsArray.forEach(f => {
+            listContainer.innerHTML += `
+                <div class="flight-card">
+                    <button class="delete-btn" onclick="deleteFlight('${f.flightId}')">حذف</button>
+                    <h3 style="margin-top:0; color:var(--accent);">شحنة رقم: ${f.flightId}</h3>
+                    <p><b>السائق المسؤول:</b> ${f.driverName}</p>
+                    <p><b>المستلم:</b> ${f.receiverName} | <b>المبلغ المطلوب:</b> <span style="color:#10b981;">${f.price} ج.م</span></p>
+                    <p><b>موعد التسليم:</b> ${f.deliveryDate}</p>
+                    <p><b>الحالة:</b> <span class="status-badge">${f.status}</span></p>
+                    <p><b>ملاحظات:</b> ${f.notes}</p>
+                    <p><a href="${f.mapUrl}" target="_blank" style="color:var(--accent); text-decoration:none;">🗺️ فتح موقع العميل على خرائط جوجل</a></p>
+                </div>
+            `;
+        });
+    });
+
+    function deleteFlight(flightId) {
+        if (confirm('هل أنت متأكد من حذف هذه الشحنة نهائياً؟')) {
+            database.ref('flights/' + flightId).remove();
+        }
+    }
+</script>
+</body>
+</html>
